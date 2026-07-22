@@ -1,4 +1,4 @@
-package com.build.boutique.Constants
+package com.build.boutique
 
 class Constants {
 
