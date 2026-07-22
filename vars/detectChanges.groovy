@@ -1,4 +1,4 @@
-import com.build.boutique
+import com.build.boutique.Constants
 
 def call() {
 
