@@ -8,14 +8,24 @@ def call(String service) {
         buildPath = "projects/boutique-microservices/backend/services/${service}"
     }
 
-    echo "================================="
-    echo "Building ${service}"
-    echo "Path : ${buildPath}"
-    echo "================================="
+    withCredentials([
+        usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+        )
+    ]) {
 
-    sh """
-        docker build \
-        -t boutique-${service}:${env.GIT_COMMIT} \
-        ${buildPath}
-    """
+        sh '''
+            echo "$DOCKER_PASSWORD" | docker login \
+                -u "$DOCKER_USERNAME" \
+                --password-stdin
+        '''
+
+        sh """
+            docker build \
+                -t ${DOCKER_USERNAME}/boutique-${service}:${env.GIT_COMMIT} \
+                ${buildPath}
+        """
+    }
 }
