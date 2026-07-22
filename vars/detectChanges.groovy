@@ -1,3 +1,5 @@
+import com.build.boutique.Constants
+
 def call() {
 
     def changedFiles = sh(
@@ -5,22 +7,9 @@ def call() {
         returnStdout: true
     ).trim()
 
-    echo "Changed Files:"
-    echo changedFiles
-
-    def backendServices = [
-        "auth",
-        "gateway",
-        "orders",
-        "order-service",
-        "product-service",
-        "user-service"
-    ]
-
     def changedServices = []
 
-    backendServices.each { service ->
-
+    Constants.BACKEND_SERVICES.each { service ->
         if (changedFiles.readLines().any {
             it.startsWith("projects/boutique-microservices/backend/services/${service}/")
         }) {
