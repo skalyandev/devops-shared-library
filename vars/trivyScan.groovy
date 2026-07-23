@@ -12,14 +12,14 @@ def call(Map config = [:]) {
     echo "Running Trivy Image Scan"
     echo "Image    : ${image}"
     echo "Severity : ${severity}"
-    echo "Exit Code: ${exit-code} "
+    echo "Exit Code: ${exitCode} "
     echo "=========================================="
 
 
     sh """
         trivy image \
         --severity ${severity} \
-        --exit-code ${exit-code} \
+        --exit-code ${exitCode} \
         --no-progress \
         ${image}
     """
