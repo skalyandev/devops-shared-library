@@ -1,8 +1,10 @@
 import com.build.boutique.Constants
 
-def call(String service) {
+def call(Map config = [:]) {
 
-    def buildPath = ""
+    String service = config.service
+
+    String buildPath
 
     if (service == "frontend") {
         buildPath = "projects/boutique-microservices/frontend"
@@ -10,18 +12,22 @@ def call(String service) {
         buildPath = "projects/boutique-microservices/backend/services/${service}"
     }
 
-    String image = Constants.imageName(
-        env.DOCKER_REGISTRY,
-        service,
-        env.GIT_COMMIT
-    )
-        
+    String imageTag = env.GIT_COMMIT.take(7)
+
+    String image = "${env.DOCKER_USERNAME}/${env.PROJECT_NAME}-${service}:${imageTag}"
+
+    echo "=========================================="
+    echo "Building Docker Image"
+    echo "Service    : ${service}"
+    echo "Image      : ${image}"
+    echo "Build Path : ${buildPath}"
+    echo "=========================================="
+
     sh """
         docker build \
-            -t ${DOCKER_USERNAME}/boutique-${service}:${env.GIT_COMMIT} \
-             ${buildPath}
-        """
+            -t ${image} \
+            ${buildPath}
+    """
 
     return image
-
 }
