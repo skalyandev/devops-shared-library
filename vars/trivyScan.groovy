@@ -1,13 +1,12 @@
 def call(Map config = [:]) {
 
-    String image = config.image
+    def image = config.image
+
+    def severity = config.severity ?: "CRITICAL,HIGH"
 
     if (!image) {
-        error "Docker image is mandatory for Trivy scan"
+        error "Trivy scan failed: Image name is required"
     }
-
-    String severity = config.severity ?: "CRITICAL,HIGH"
-    String exitCode = config.exitCode ?: "1"
 
     echo "=========================================="
     echo "Running Trivy Image Scan"
@@ -15,15 +14,14 @@ def call(Map config = [:]) {
     echo "Severity : ${severity}"
     echo "=========================================="
 
+
     sh """
         trivy image \
         --severity ${severity} \
-        --exit-code ${exitCode} \
+        --exit-code 1 \
         --no-progress \
         ${image}
     """
 
-    echo "=========================================="
-    echo "Trivy Scan Completed Successfully"
-    echo "=========================================="
+    echo "Trivy scan completed successfully"
 }
