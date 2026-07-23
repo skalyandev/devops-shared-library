@@ -8,24 +8,18 @@ def call(String service) {
         buildPath = "projects/boutique-microservices/backend/services/${service}"
     }
 
-    withCredentials([
-        usernamePassword(
-            credentialsId: 'dockerhub-creds',
-            usernameVariable: 'DOCKER_USERNAME',
-            passwordVariable: 'DOCKER_PASSWORD'
-        )
-    ]) {
-
-        sh '''
-            echo "$DOCKER_PASSWORD" | docker login \
-                -u "$DOCKER_USERNAME" \
-                --password-stdin
-        '''
-
-        sh """
-            docker build \
-                -t ${DOCKER_USERNAME}/boutique-${service}:${env.GIT_COMMIT} \
-                ${buildPath}
+    String image = Constants.imageName(
+        env.DOCKER_REGISTRY,
+        service,
+        env.GIT_COMMIT
+    )
+        
+    sh """
+        docker build \
+            -t ${DOCKER_USERNAME}/boutique-${service}:${env.GIT_COMMIT} \
+             ${buildPath}
         """
-    }
+
+    return image
+
 }

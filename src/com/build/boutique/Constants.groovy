@@ -10,4 +10,12 @@ class Constants {
         "product-service",
         "user-service"
     ]
+
+    static String imageName(String registry,
+                            String service,
+                            String tag) {
+
+       return "${registry}/${service}:${tag}" 
+
+    }
 }
