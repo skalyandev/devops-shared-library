@@ -14,7 +14,9 @@ def call(Map config = [:]) {
 
     String imageTag = env.GIT_COMMIT.take(7)
 
-    String image = "${env.DOCKER_USERNAME}/${env.PROJECT_NAME}-${service}:${imageTag}"
+    String image = "${env.DOCKER_REGISTRY}/${env.PROJECT_NAME}-${service}:${imageTag}"
+
+    
 
     echo "=========================================="
     echo "Building Docker Image"
