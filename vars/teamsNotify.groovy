@@ -28,7 +28,7 @@ def call(Map config = [:]) {
 
     withCredentials([
         string(
-            credentialsId: 'teams-webhook',
+            credentialsId: 'microsoft-teams-webhook',
             variable: 'TEAMS_WEBHOOK'
         )
     ]) {
