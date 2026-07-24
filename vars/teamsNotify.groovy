@@ -9,23 +9,6 @@ def call(Map config = [:]) {
     String buildUrl = env.BUILD_URL ?: ""
     String buildBy  = env.BUILD_USER ?: "Jenkins"
 
-    String color = "0078D4"
-
-    switch (status.toUpperCase()) {
-        case "SUCCESS":
-            color = "2EB886"
-            break
-        case "FAILURE":
-            color = "E81123"
-            break
-        case "UNSTABLE":
-            color = "FFB900"
-            break
-        case "ABORTED":
-            color = "808080"
-            break
-    }
-
     withCredentials([
         string(
             credentialsId: 'microsoft-teams-webhook',
@@ -33,64 +16,80 @@ def call(Map config = [:]) {
         )
     ]) {
 
+        def payload = """
+        {
+          "type": "message",
+          "attachments": [
+            {
+              "contentType": "application/vnd.microsoft.card.adaptive",
+              "content": {
+                "\\\$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.4",
+                "body": [
+                  {
+                    "type": "TextBlock",
+                    "text": "🚀 Jenkins Pipeline Notification",
+                    "weight": "Bolder",
+                    "size": "Medium"
+                  },
+                  {
+                    "type": "FactSet",
+                    "facts": [
+                      {
+                        "title": "Status",
+                        "value": "${status}"
+                      },
+                      {
+                        "title": "Job",
+                        "value": "${jobName}"
+                      },
+                      {
+                        "title": "Build",
+                        "value": "#${buildNo}"
+                      },
+                      {
+                        "title": "Branch",
+                        "value": "${branch}"
+                      },
+                      {
+                        "title": "Commit",
+                        "value": "${commit}"
+                      },
+                      {
+                        "title": "Docker Image",
+                        "value": "${image}"
+                      },
+                      {
+                        "title": "Triggered By",
+                        "value": "${buildBy}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "ActionSet",
+                    "actions": [
+                      {
+                        "type": "Action.OpenUrl",
+                        "title": "View Build",
+                        "url": "${buildUrl}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+        """
+
         sh """
-        curl -s -H "Content-Type: application/json" \
-        -d '{
-            "@type":"MessageCard",
-            "@context":"https://schema.org/extensions",
-            "themeColor":"${color}",
-            "summary":"Jenkins Build",
-            "title":"🚀 Jenkins Pipeline Notification",
-            "sections":[
-                {
-                    "facts":[
-                        {
-                            "name":"Status",
-                            "value":"${status}"
-                        },
-                        {
-                            "name":"Job",
-                            "value":"${jobName}"
-                        },
-                        {
-                            "name":"Build",
-                            "value":"#${buildNo}"
-                        },
-                        {
-                            "name":"Branch",
-                            "value":"${branch}"
-                        },
-                        {
-                            "name":"Commit",
-                            "value":"${commit}"
-                        },
-                        {
-                            "name":"Docker Image",
-                            "value":"${image}"
-                        },
-                        {
-                            "name":"Triggered By",
-                            "value":"${buildBy}"
-                        }
-                    ]
-                }
-            ],
-            "potentialAction":[
-                {
-                    "@type":"OpenUri",
-                    "name":"View Build",
-                    "targets":[
-                        {
-                            "os":"default",
-                            "uri":"${buildUrl}"
-                        }
-                    ]
-                }
-            ]
-        }' \
-        \$TEAMS_WEBHOOK
+        curl -s -i -X POST \
+        -H "Content-Type: application/json" \
+        -d '${payload}' \
+        "\$TEAMS_WEBHOOK"
         """
     }
 
-    echo "Microsoft Teams notification sent."
+    echo "Microsoft Teams Adaptive Card notification sent."
 }
