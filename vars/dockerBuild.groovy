@@ -3,6 +3,15 @@ import com.build.boutique.Constants
 def call(Map config = [:]) {
 
     String service = config.service
+    String registryType = config.registryType ?: "docker"
+
+    if (!service) {
+        error "Docker build failed: Service name is required"
+    }
+
+    if (!(registryType in ["docker", "ecr"])) {
+        error "Unsupported registry type: ${registryType}. Supported values: docker, ecr"
+    }
 
     String buildPath
 
@@ -14,22 +23,38 @@ def call(Map config = [:]) {
 
     String imageTag = env.GIT_COMMIT.take(7)
 
-    String image = "${env.DOCKER_REGISTRY}/${env.PROJECT_NAME}-${service}:${imageTag}"
+    String registry
 
-    
+    if (registryType == "docker") {
+        registry = env.DOCKER_REGISTRY
+    } else {
+        registry = env.ECR_REGISTRY
+    }
 
-    echo "=========================================="
-    echo "Building Docker Image"
-    echo "Service    : ${service}"
-    echo "Image      : ${image}"
-    echo "Build Path : ${buildPath}"
-    echo "=========================================="
+    if (!registry) {
+        error "Registry is not configured for registry type: ${registryType}"
+    }
+
+    String image = "${registry}/${env.PROJECT_NAME}-${service}:${imageTag}"
+
+    echo """
+==========================================
+Building Docker Image
+==========================================
+Registry   : ${registryType}
+Service    : ${service}
+Image      : ${image}
+Build Path : ${buildPath}
+==========================================
+"""
 
     sh """
         docker build \
             -t ${image} \
             ${buildPath}
     """
+
+    echo "Docker image built successfully: ${image}"
 
     return image
 }
