@@ -35,7 +35,25 @@ def call(Map config = [:]) {
         error "Registry is not configured for registry type: ${registryType}"
     }
 
-    String image = "${registry}/${env.PROJECT_NAME}-${service}:${imageTag}"
+    /*
+     * Map application services to Docker/ECR repositories.
+     *
+     * Frontend services use:
+     *     boutique-frontend
+     *
+     * Backend services such as auth use:
+     *     boutique-backend
+     */
+
+    String repository
+
+    if (service == "frontend") {
+        repository = "${env.PROJECT_NAME}-frontend"
+    } else {
+        repository = "${env.PROJECT_NAME}-backend"
+    }
+
+    String image = "${registry}/${repository}:${imageTag}"
 
     echo """
 ==========================================
@@ -43,6 +61,7 @@ Building Docker Image
 ==========================================
 Registry   : ${registryType}
 Service    : ${service}
+Repository : ${repository}
 Image      : ${image}
 Build Path : ${buildPath}
 ==========================================
